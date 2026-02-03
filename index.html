@@ -3,42 +3,448 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maybe Button</title>
+    <title>Will You Be My Valentine?</title>
     <style>
-        #maybeButton {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 50%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(255, 105, 135, 0.3);
+            max-width: 500px;
+            position: relative;
+        }
+
+        h1 {
+            color: #d63384;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .teddy-gif {
+            width: 250px;
+            height: auto;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            min-height: 60px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff6b95, #ff3366);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 51, 102, 0.6);
+        }
+
+        .btn-maybe {
+            background: linear-gradient(135deg, #a0a0a0, #808080);
+            color: white;
+            box-shadow: 0 4px 15px rgba(128, 128, 128, 0.4);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-maybe.escaping {
+            position: absolute;
+        }
+
+        .btn-maybe.escaping.animate {
+            transition: left 0.15s ease-out, top 0.15s ease-out;
+        }
+
+        .result-text {
+            color: #d63384;
+            font-size: 2rem;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .hearts {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            transition: transform 0.5s ease;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            animation: fall linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .explosion-heart {
+            position: fixed;
+            font-size: 30px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: explode 0.8s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(720deg);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <button id="maybeButton">Maybe</button>
+    <div class="hearts" id="hearts"></div>
+
+    <div class="container" id="questionContainer">
+        <h1>Będziesz moją Walentynką?</h1>
+        <img
+            id="mainGif"
+            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXdnMmQ4cTI2cWk0aXQyM3YzMGszdDZjZncwNDBzN2ZxdWw4MG81dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/D9j761FH8SYJLyW9WO/giphy.gif"
+            class="teddy-gif"
+        >
+        <div class="buttons-container" id="buttonsContainer">
+            <button class="btn btn-yes" id="yesBtn">Tak</button>
+            <button class="btn btn-maybe" id="maybeBtn">Może...</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="resultContainer">
+        <h1>Wiedziałem że powiesz tak! 😏😏 </h1>
+        <img
+            src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2cxbGUxdzY1NmpoOXNqcWtzYjVzaXRucTE1emFxcmtmYXdwMTZ1dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DdJ9RsY88uBarMvVsb/giphy.gif"
+            class="teddy-gif"
+        >
+        <p class="result-text">Wszystkiego walentynkowego 😏❤️!</p>
+    </div>
 
     <script>
-        const maybeButton = document.getElementById('maybeButton');
+        const yesBtn = document.getElementById('yesBtn');
+        const maybeBtn = document.getElementById('maybeBtn');
+        const questionContainer = document.getElementById('questionContainer');
+        const resultContainer = document.getElementById('resultContainer');
+        const heartsContainer = document.getElementById('hearts');
 
-        document.addEventListener('mousemove', (event) => {
-            const buttonRect = maybeButton.getBoundingClientRect();
-            const buttonX = buttonRect.left + buttonRect.width / 2;
-            const buttonY = buttonRect.top + buttonRect.height / 2;
-            const distanceX = event.clientX - buttonX;
-            const distanceY = event.clientY - buttonY;
-            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-            const offset = 100;
+        // Create falling hearts
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = ['❤️', '💕', '💗', '💖', '💘'][Math.floor(Math.random() * 5)];
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            heartsContainer.appendChild(heart);
 
-            if (distance < offset) {
-                // Calculate new position
-                const newX = buttonX + (distanceX / distance) * offset;
-                const newY = buttonY + (distanceY / distance) * offset;
-                // Move button smoothly
-                maybeButton.style.transform = `translate(${newX - buttonX}px, ${newY - buttonY}px)`;
-            } else {
-                // Reset button position
-                maybeButton.style.transform = '';
+            setTimeout(() => heart.remove(), 7000);
+        }
+
+        setInterval(createHeart, 300);
+
+        // Heart explosion effect
+        function createHeartExplosion() {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const hearts = ['❤️', '💕', '💗', '💖', '💘', '💝', '💓', '💞'];
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.classList.add('explosion-heart');
+                    heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+                    heart.style.left = centerX + 'px';
+                    heart.style.top = centerY + 'px';
+                    heart.style.fontSize = (Math.random() * 30 + 20) + 'px';
+
+                    // Random direction for explosion
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 400 + 200;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+
+                    heart.style.setProperty('--tx', tx + 'px');
+                    heart.style.setProperty('--ty', ty + 'px');
+
+                    document.body.appendChild(heart);
+                    setTimeout(() => heart.remove(), 1500);
+                    setTimeout(() => heart.remove(), 800);
+                }, i * 15);
+            }
+        }
+
+        // Yes button click
+        yesBtn.addEventListener('click', () => {
+            createHeartExplosion();
+            questionContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+
+            // Create extra falling hearts
+            for (let i = 0; i < 20; i++) {
+                setTimeout(createHeart, i * 30);
             }
         });
+
+        // Maybe button text progression
+        const maybeTexts = [
+            "Może...",
+            "Na pewno?",
+            "Przemyśl to..",
+            "Nie nie",
+            "Jestem szybki!",
+            "Nadal za wolno!",
+            "Hehe 😏",
+            "Dalej próbujesz.?",
+            "mmm są inne opcje?",
+            "Nie ma żadnych 😏",
+            "Wciąż masz nadzieję? 😏",
+            "Serio masz nadzieję? 😏",
+            "Wiesz jak to się skończy..",
+            "Poddajesz się?",
+            "Uparta dziewczyna!",
+            "Ale mi się to podoba 😏",
+            "Ale i tak nie..",
+            "Ok zmęczyłem się..",
+            "Ok kliknij Tak..",
+            "dobra już! kliknij tak, serio..",
+            "to już nie jest śmieszne!!",
+            "po.. wie.. działeeemm.. TAK!",
+            "Dobra... poczekam aż się wyżyjesz... 😆",
+            "No niewyżyta dziołcha! 😆",
+            "Kliknij TAK zanim zmienię zdanie! 😏",
+            "Z tym że I tak nie zmienię 😂",
+            "No kliknij już w końcu TAK!! 😆",
+            "Nadal czekam! 😆",
+            "Kliknij TAK bo zaraz zasnę z nudów... 😂",
+            "No już! Kliknij TAK!! 😆",
+            "Okej, ostatnia szansa... 😆",
+            "Kliknij TAK albo nigdy więcej nie dostaniesz ode mnie czekoladki! 😆",
+            "Dobra... teraz serio poczekam aż się wyżyjesz... 😆",
+        ];
+        let textIndex = 0;
+
+        // Gif progression
+        const mainGif = document.getElementById('mainGif');
+        const gifStages = [
+            { clicks: 5, src: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3h5aWRsOW0wN20zZjhrb3Vtcm96M3JmaTdwdGQ3aDZuZXp5YjF5bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qIdmQoh8wnrOICi07q/giphy.gif" },
+            { clicks: 8, src: "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDQyN3Q5NDBsb2xoZ3lxaXkwcmFtZTRyZmhzczJ6a2F0Zm9zd3R3ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lK9FAxyLQXKtkU2vDR/giphy.gif" },
+            { clicks: 12, src: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmwzb3Bud2xmZGNmaTU0dmkxOHg4eGRyNHBvdTBpN2RpamVmdXd2eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Cztb6NH18CmyPlFD0x/giphy.gif" },
+            { clicks: 19, src: "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmRkMGY2aWdqdjJrbWYwZGlkd3c5M254bnl0emppcW1jeWJlYzJ6ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ZCgbFvjn3AG5gKeDGH/giphy.gif" },
+            { clicks: 25, src: "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDg1aTE4cnA2Zjg1Zzc2aGt2bng2M25kdmsxcTloZHNoNWlmbXR5dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UBPewrJ0g8oRyulw3P/giphy.gif" },
+            { clicks: 29, src: "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXMzcnp6NTExeW9jczYyN2Q1ZW5mdnd5eGM3bG4zbW11dnhtY2J3ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/E5p5arpofX17Lg9KO9/giphy.gif" },
+            { clicks: 31, src: "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3kydnF4YXE3NDgzaHViMGZ0ZGF1Yzg4NDFlNXN0anIzYjczdDA2cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/35FdSNJrsdxquwq8dh/giphy.gif" },
+        ];
+        let gifStageIndex = 0;
+
+        function advanceMaybeText() {
+            if (textIndex < maybeTexts.length - 1) {
+                textIndex++;
+                maybeBtn.textContent = maybeTexts[textIndex];
+            }
+
+            // Check if we should change the gif
+            if (gifStageIndex < gifStages.length && textIndex >= gifStages[gifStageIndex].clicks) {
+                mainGif.src = gifStages[gifStageIndex].src;
+                gifStageIndex++;
+            }
+        }
+
+        // Maybe button - runs away from cursor within container
+        let isEscaping = false;
+        let currentX = 0;
+        let currentY = 0;
+        let btnWidth = 0;
+        let btnHeight = 0;
+        let savedContainerWidth = 0;
+        let savedContainerHeight = 0;
+
+        // Clamp value
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        // Get valid movement bounds based on saved container size
+        function getBounds() {
+            // Container has 40px CSS padding on all sides
+            // With box-sizing: border-box, clientWidth/Height includes padding
+            // So content area: x from 40 to (width-40), y from 40 to (height-40)
+            const cssPadding = 40;
+            const extraMargin = 15;
+
+            const minX = cssPadding + extraMargin;
+            const minY = cssPadding + extraMargin;
+            const maxX = savedContainerWidth - cssPadding - btnWidth - extraMargin;
+            const maxY = savedContainerHeight - cssPadding - btnHeight - extraMargin;
+
+            // Safety: ensure max >= min
+            return {
+                minX: minX,
+                minY: minY,
+                maxX: Math.max(maxX, minX),
+                maxY: Math.max(maxY, minY)
+            };
+        }
+
+        // Start escaping - switch to absolute positioning
+        function startEscaping() {
+            if (!isEscaping) {
+                const btnRect = maybeBtn.getBoundingClientRect();
+                const containerRect = questionContainer.getBoundingClientRect();
+
+                btnWidth = btnRect.width;
+                btnHeight = btnRect.height;
+
+                // Save container dimensions BEFORE removing button from flow
+                savedContainerWidth = questionContainer.clientWidth;
+                savedContainerHeight = questionContainer.clientHeight;
+
+                // Lock container size so it doesn't shrink
+                questionContainer.style.minHeight = savedContainerHeight + 'px';
+                questionContainer.style.minWidth = savedContainerWidth + 'px';
+
+                // Calculate current position relative to container
+                currentX = btnRect.left - containerRect.left;
+                currentY = btnRect.top - containerRect.top;
+
+                // Switch to absolute positioning (no transition yet)
+                maybeBtn.classList.add('escaping');
+
+                // Clamp to valid bounds and set initial position
+                const bounds = getBounds();
+                currentX = clamp(currentX, bounds.minX, bounds.maxX);
+                currentY = clamp(currentY, bounds.minY, bounds.maxY);
+                maybeBtn.style.left = currentX + 'px';
+                maybeBtn.style.top = currentY + 'px';
+
+                // Enable transition after initial position is set
+                requestAnimationFrame(() => {
+                    maybeBtn.classList.add('animate');
+                });
+
+                isEscaping = true;
+            }
+        }
+
+        // Set button position (always clamped to bounds)
+        function setPosition(x, y) {
+            const bounds = getBounds();
+            currentX = clamp(x, bounds.minX, bounds.maxX);
+            currentY = clamp(y, bounds.minY, bounds.maxY);
+            maybeBtn.style.left = currentX + 'px';
+            maybeBtn.style.top = currentY + 'px';
+        }
+
+        // Move to random position (mobile tap)
+        function moveToRandomPosition() {
+            startEscaping();
+            const bounds = getBounds();
+
+            let newX, newY, attempts = 0;
+            do {
+                newX = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+                newY = bounds.minY + Math.random() * (bounds.maxY - bounds.minY);
+                attempts++;
+            } while (
+                attempts < 20 &&
+                Math.abs(newX - currentX) < 60 &&
+                Math.abs(newY - currentY) < 60
+            );
+
+            setPosition(newX, newY);
+        }
+
+        // Move button on click
+        maybeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            moveToRandomPosition();
+            advanceMaybeText();
+        });
+
+        // Also handle touchstart for faster mobile response
+        maybeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            moveToRandomPosition();
+            advanceMaybeText();
+        }, { passive: false });
+
+        // Handle viewport changes - re-clamp position
+        function onViewportChange() {
+            if (isEscaping) {
+                setPosition(currentX, currentY);
+            }
+        }
+
+        window.addEventListener('resize', onViewportChange);
     </script>
 </body>
 </html>
